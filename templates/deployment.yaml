@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crud-chart.fullname" . }}
+  labels:
+  {{- include "crud-chart.labels" . | nindent 4 }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+  {{- include "crud-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+    {{- include "crud-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - name: web
+              containerPort: 8000
+          env:
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: user-crud-secret
+                  key: APP_KEY
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: user-crud-secret
+                  key: DB_PORT
+            - name: DB_CONNECTION
+              valueFrom:
+                secretKeyRef:
+                  name: user-crud-secret
+                  key: DB_CONNECTION
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: user-crud-secret
+                  key: DB_HOST
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: user-crud-secret
+                  key: DB_DATABASE
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: user-crud-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-crud-secret
+                  key: DB_PASSWORD
+          livenessProbe:
+            httpGet:
+              port: 8000
+              path: /health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+          readinessProbe:
+            httpGet:
+              port: 8000
+              path: /health
+            initialDelaySeconds: 10
+            periodSeconds: 5
